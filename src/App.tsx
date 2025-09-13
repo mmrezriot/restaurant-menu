@@ -30,8 +30,7 @@ const App: React.FC = () => {
         <Router>
           <div className="App">
             <Routes>
-              <Route path="/" element={<TestTailwind />} />
-              <Route path="/menu" element={<Landing />} />
+              <Route path="/" element={<Landing />} />
               <Route path="/admin/login" element={<Login />} />
               <Route 
                 path="/admin" 

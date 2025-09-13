@@ -12,7 +12,7 @@ const FoodCard: React.FC<FoodCardProps> = ({ food }) => {
       {/* Image Container */}
       <div className="relative overflow-hidden">
         <img
-          src={food.imageUrl}
+          src={food.imageUrl || 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop&crop=center'}
           alt={food.name}
           className="w-full h-56 object-cover transition-transform duration-500 group-hover:scale-110"
           onError={(e) => {

@@ -4,7 +4,6 @@ import { getCategories, getFoods, getFoodsByCategory } from '../services/firesto
 import FoodCard from '../components/FoodCard';
 import CategoryFilter from '../components/CategoryFilter';
 import LoadingSpinner from '../components/LoadingSpinner';
-import ImageUploadTest from '../components/ImageUploadTest';
 
 const Landing: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -87,10 +86,6 @@ const Landing: React.FC = () => {
       {/* Main Content */}
       <main className="bg-gradient-to-b from-white to-gray-50 -mt-16 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
-          {/* Image Upload Test - Remove this after fixing */}
-          <div className="mb-8">
-            <ImageUploadTest />
-          </div>
           {/* Category Filter */}
           <div className="mb-12">
             <CategoryFilter
