@@ -1,6 +1,5 @@
 import React from 'react';
 import type { Category } from '../types';
-import Button from './ui/Button';
 
 interface CategoryFilterProps {
   categories: Category[];
@@ -14,23 +13,30 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
   onCategorySelect
 }) => {
   return (
-    <div className="flex flex-wrap gap-2 mb-6">
-      <Button
-        variant={selectedCategory === null ? 'primary' : 'outline'}
-        size="sm"
+    <div className="flex flex-wrap gap-3 mb-8 justify-center">
+      <button
         onClick={() => onCategorySelect(null)}
+        className={`px-6 py-3 rounded-full font-medium text-sm transition-all duration-300 transform hover:scale-105 ${
+          selectedCategory === null
+            ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-large'
+            : 'bg-white text-gray-600 hover:text-primary-600 hover:bg-primary-50 shadow-soft hover:shadow-medium border border-gray-200'
+        }`}
       >
-        همه
-      </Button>
-      {categories.map((category) => (
-        <Button
+        🍽️ همه
+      </button>
+      {categories.map((category, index) => (
+        <button
           key={category.id}
-          variant={selectedCategory === category.id ? 'primary' : 'outline'}
-          size="sm"
           onClick={() => onCategorySelect(category.id)}
+          className={`px-6 py-3 rounded-full font-medium text-sm transition-all duration-300 transform hover:scale-105 animate-fade-in ${
+            selectedCategory === category.id
+              ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-large'
+              : 'bg-white text-gray-600 hover:text-primary-600 hover:bg-primary-50 shadow-soft hover:shadow-medium border border-gray-200'
+          }`}
+          style={{ animationDelay: `${index * 100}ms` }}
         >
           {category.name}
-        </Button>
+        </button>
       ))}
     </div>
   );
