@@ -11,6 +11,7 @@ import {
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from './firebase';
+import { uploadImageToCloudinary, uploadImageToImgBB, convertToBase64 } from './cloudinary';
 import type { Category, Food } from '../types';
 
 // Categories
@@ -77,7 +78,7 @@ export const deleteFood = async (id: string): Promise<void> => {
   await deleteDoc(foodRef);
 };
 
-// Image upload with Firebase SDK
+// Image upload with multiple providers (free options)
 export const uploadImage = async (file: File): Promise<string> => {
   try {
     // Validate file type
@@ -85,70 +86,34 @@ export const uploadImage = async (file: File): Promise<string> => {
       throw new Error('فایل انتخاب شده باید تصویر باشد');
     }
 
-    // Validate file size (max 5MB)
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    if (file.size > maxSize) {
-      throw new Error('حجم فایل نباید بیشتر از 5 مگابایت باشد');
+    // Try different upload methods in order of preference
+    const uploadMethods = [
+      { name: 'Cloudinary', method: () => uploadImageToCloudinary(file) },
+      { name: 'ImgBB', method: () => uploadImageToImgBB(file) },
+      { name: 'Base64', method: () => convertToBase64(file) },
+    ];
+
+    for (const { name, method } of uploadMethods) {
+      try {
+        console.log(`Trying ${name} upload...`);
+        const result = await method();
+        console.log(`${name} upload successful:`, result);
+        return result;
+      } catch (error) {
+        console.warn(`${name} upload failed:`, error);
+        // Continue to next method
+      }
     }
 
-    // Create a unique filename
-    const timestamp = Date.now();
-    const randomString = Math.random().toString(36).substring(2, 15);
-    const fileExtension = file.name.split('.').pop() || 'jpg';
-    const fileName = `${timestamp}-${randomString}.${fileExtension}`;
+    // If all methods fail, return placeholder
+    console.warn('All upload methods failed. Using placeholder image.');
+    return 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop&crop=center';
     
-    // Create storage reference
-    const storageRef = ref(storage, `food-images/${fileName}`);
-    
-    // Upload metadata
-    const metadata = {
-      contentType: file.type,
-      customMetadata: {
-        uploadedBy: 'admin',
-        uploadedAt: new Date().toISOString(),
-        originalName: file.name
-      }
-    };
-    
-    // Upload the file with metadata
-    console.log('Starting upload...', { fileName, size: file.size, type: file.type });
-    const snapshot = await uploadBytes(storageRef, file, metadata);
-    console.log('Upload completed:', snapshot);
-    
-    // Get the download URL
-    const downloadURL = await getDownloadURL(snapshot.ref);
-    console.log('Download URL obtained:', downloadURL);
-    
-    return downloadURL;
   } catch (error) {
     console.error('Error uploading image:', error);
     
-    // Check if it's a CORS error
-    if (error instanceof Error && (
-      error.message.includes('CORS') || 
-      error.message.includes('ERR_FAILED') ||
-      error.message.includes('blocked by CORS policy')
-    )) {
-      console.warn('CORS error detected. Using placeholder image.');
-      // Return a placeholder image URL instead of throwing error
-      return 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop&crop=center';
-    }
-    
-    // More specific error handling for other errors
     if (error instanceof Error) {
-      if (error.message.includes('storage/unauthorized')) {
-        throw new Error('شما مجوز آپلود تصویر ندارید. لطفاً دوباره وارد شوید.');
-      } else if (error.message.includes('storage/canceled')) {
-        throw new Error('آپلود تصویر لغو شد.');
-      } else if (error.message.includes('storage/unknown')) {
-        throw new Error('خطای نامشخص در آپلود تصویر. لطفاً دوباره تلاش کنید.');
-      } else if (error.message.includes('storage/invalid-format')) {
-        throw new Error('فرمت فایل پشتیبانی نمی‌شود.');
-      } else if (error.message.includes('storage/invalid-checksum')) {
-        throw new Error('فایل آسیب دیده است. لطفاً دوباره انتخاب کنید.');
-      } else {
-        throw new Error(`خطا در آپلود تصویر: ${error.message}`);
-      }
+      throw new Error(`خطا در آپلود تصویر: ${error.message}`);
     }
     
     throw new Error('خطای نامشخص در آپلود تصویر');
