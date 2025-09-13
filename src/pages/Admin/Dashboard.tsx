@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Button from '../../components/ui/Button';
 import CategoryManagement from '../../components/Admin/CategoryManagement';
 import FoodManagement from '../../components/Admin/FoodManagement';
+import ImageUploadTest from '../../components/Admin/ImageUploadTest';
 
 const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
@@ -101,6 +102,9 @@ const Dashboard: React.FC = () => {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="animate-fade-in">
+          {/* Image Upload Test */}
+          <ImageUploadTest />
+          
           {activeTab === 'categories' ? (
             <CategoryManagement />
           ) : (

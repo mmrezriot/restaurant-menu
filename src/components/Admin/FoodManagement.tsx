@@ -222,7 +222,7 @@ const FoodManagement: React.FC = () => {
                 {/* Food Image */}
                 <div className="relative mb-4">
                   <img
-                    src={food.imageUrl}
+                    src={food.imageUrl || 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop&crop=center'}
                     alt={food.name}
                     className="w-full h-32 object-cover rounded-xl"
                     onError={(e) => {

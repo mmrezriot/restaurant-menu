@@ -95,8 +95,15 @@ export const uploadImage = async (file: File): Promise<string> => {
   } catch (error) {
     console.error('Error uploading image:', error);
     
+    // Check if it's a CORS error
+    if (error instanceof Error && error.message.includes('CORS')) {
+      console.warn('CORS error detected. Please check Firebase Storage rules.');
+      console.warn('Using placeholder image due to CORS error');
+    } else {
+      console.warn('Using placeholder image due to upload error');
+    }
+    
     // Fallback: return a placeholder image URL
-    console.warn('Using placeholder image due to upload error');
     return 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop&crop=center';
   }
 };
