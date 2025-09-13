@@ -77,33 +77,69 @@ export const deleteFood = async (id: string): Promise<void> => {
   await deleteDoc(foodRef);
 };
 
-// Image upload
+// Image upload with Firebase SDK
 export const uploadImage = async (file: File): Promise<string> => {
   try {
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      throw new Error('فایل انتخاب شده باید تصویر باشد');
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      throw new Error('حجم فایل نباید بیشتر از 5 مگابایت باشد');
+    }
+
     // Create a unique filename
     const timestamp = Date.now();
-    const fileName = `${timestamp}-${Math.random().toString(36).substring(2)}.${file.name.split('.').pop()}`;
+    const randomString = Math.random().toString(36).substring(2, 15);
+    const fileExtension = file.name.split('.').pop() || 'jpg';
+    const fileName = `${timestamp}-${randomString}.${fileExtension}`;
+    
+    // Create storage reference
     const storageRef = ref(storage, `food-images/${fileName}`);
     
-    // Upload the file
-    const snapshot = await uploadBytes(storageRef, file);
+    // Upload metadata
+    const metadata = {
+      contentType: file.type,
+      customMetadata: {
+        uploadedBy: 'admin',
+        uploadedAt: new Date().toISOString(),
+        originalName: file.name
+      }
+    };
+    
+    // Upload the file with metadata
+    console.log('Starting upload...', { fileName, size: file.size, type: file.type });
+    const snapshot = await uploadBytes(storageRef, file, metadata);
+    console.log('Upload completed:', snapshot);
     
     // Get the download URL
     const downloadURL = await getDownloadURL(snapshot.ref);
+    console.log('Download URL obtained:', downloadURL);
     
     return downloadURL;
   } catch (error) {
     console.error('Error uploading image:', error);
     
-    // Check if it's a CORS error
-    if (error instanceof Error && error.message.includes('CORS')) {
-      console.warn('CORS error detected. Please check Firebase Storage rules.');
-      console.warn('Using placeholder image due to CORS error');
-    } else {
-      console.warn('Using placeholder image due to upload error');
+    // More specific error handling
+    if (error instanceof Error) {
+      if (error.message.includes('storage/unauthorized')) {
+        throw new Error('شما مجوز آپلود تصویر ندارید. لطفاً دوباره وارد شوید.');
+      } else if (error.message.includes('storage/canceled')) {
+        throw new Error('آپلود تصویر لغو شد.');
+      } else if (error.message.includes('storage/unknown')) {
+        throw new Error('خطای نامشخص در آپلود تصویر. لطفاً دوباره تلاش کنید.');
+      } else if (error.message.includes('storage/invalid-format')) {
+        throw new Error('فرمت فایل پشتیبانی نمی‌شود.');
+      } else if (error.message.includes('storage/invalid-checksum')) {
+        throw new Error('فایل آسیب دیده است. لطفاً دوباره انتخاب کنید.');
+      } else {
+        throw new Error(`خطا در آپلود تصویر: ${error.message}`);
+      }
     }
     
-    // Fallback: return a placeholder image URL
-    return 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop&crop=center';
+    throw new Error('خطای نامشخص در آپلود تصویر');
   }
 };

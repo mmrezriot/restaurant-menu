@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getCategories, getFoods, addFood, updateFood, deleteFood, uploadImage } from '../../services/firestore';
+import { getCategories, getFoods, addFood, updateFood, deleteFood } from '../../services/firestore';
 import type { Food } from '../../types';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -8,6 +8,7 @@ import Textarea from '../ui/Textarea';
 import Select from '../ui/Select';
 import Modal from '../ui/Modal';
 import LoadingSpinner from '../LoadingSpinner';
+import ImageUpload from './ImageUpload';
 
 const FoodManagement: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -17,7 +18,7 @@ const FoodManagement: React.FC = () => {
     description: '',
     price: '',
     categoryId: '',
-    image: null as File | null,
+    imageUrl: ''
   });
   const [imagePreview, setImagePreview] = useState<string>('');
   const [error, setError] = useState('');
@@ -82,28 +83,18 @@ const FoodManagement: React.FC = () => {
       return;
     }
 
-    try {
-      let imageUrl = editingFood?.imageUrl || '';
+    const foodData = {
+      name: formData.name.trim(),
+      description: formData.description.trim(),
+      price,
+      categoryId: formData.categoryId,
+      imageUrl: formData.imageUrl,
+    };
 
-      if (formData.image) {
-        imageUrl = await uploadImage(formData.image);
-      }
-
-      const foodData = {
-        name: formData.name.trim(),
-        description: formData.description.trim(),
-        price,
-        categoryId: formData.categoryId,
-        imageUrl,
-      };
-
-      if (editingFood) {
-        updateMutation.mutate({ id: editingFood.id, data: foodData });
-      } else {
-        addMutation.mutate(foodData);
-      }
-    } catch (err) {
-      setError('خطا در آپلود تصویر');
+    if (editingFood) {
+      updateMutation.mutate({ id: editingFood.id, data: foodData });
+    } else {
+      addMutation.mutate(foodData);
     }
   };
 
@@ -114,7 +105,7 @@ const FoodManagement: React.FC = () => {
       description: food.description,
       price: food.price.toString(),
       categoryId: food.categoryId,
-      image: null,
+      imageUrl: food.imageUrl,
     });
     setImagePreview(food.imageUrl);
     setIsModalOpen(true);
@@ -127,16 +118,9 @@ const FoodManagement: React.FC = () => {
     }
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setFormData({ ...formData, image: file });
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleImageUploaded = (imageUrl: string) => {
+    setFormData({ ...formData, imageUrl });
+    setImagePreview(imageUrl);
   };
 
   const handleCloseModal = () => {
@@ -147,7 +131,7 @@ const FoodManagement: React.FC = () => {
       description: '',
       price: '',
       categoryId: '',
-      image: null,
+      imageUrl: '',
     });
     setImagePreview('');
     setError('');
@@ -329,26 +313,11 @@ const FoodManagement: React.FC = () => {
             required
           />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              تصویر غذا
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
-            />
-            {imagePreview && (
-              <div className="mt-2">
-                <img
-                  src={imagePreview}
-                  alt="پیش‌نمایش"
-                  className="h-32 w-32 object-cover rounded-lg"
-                />
-              </div>
-            )}
-          </div>
+          <ImageUpload
+            onImageUploaded={handleImageUploaded}
+            currentImageUrl={editingFood?.imageUrl}
+            disabled={addMutation.isPending || updateMutation.isPending}
+          />
 
           {error && (
             <div className="text-red-600 text-sm">{error}</div>
