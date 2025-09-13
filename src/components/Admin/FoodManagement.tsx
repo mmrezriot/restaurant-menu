@@ -8,7 +8,6 @@ import Textarea from '../ui/Textarea';
 import Select from '../ui/Select';
 import Modal from '../ui/Modal';
 import LoadingSpinner from '../LoadingSpinner';
-import ImageUpload from './ImageUpload';
 
 const FoodManagement: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -20,7 +19,6 @@ const FoodManagement: React.FC = () => {
     categoryId: '',
     imageUrl: ''
   });
-  const [imagePreview, setImagePreview] = useState<string>('');
   const [error, setError] = useState('');
 
   const queryClient = useQueryClient();
@@ -107,7 +105,6 @@ const FoodManagement: React.FC = () => {
       categoryId: food.categoryId,
       imageUrl: food.imageUrl,
     });
-    setImagePreview(food.imageUrl);
     setIsModalOpen(true);
     setError('');
   };
@@ -118,10 +115,6 @@ const FoodManagement: React.FC = () => {
     }
   };
 
-  const handleImageUploaded = (imageUrl: string) => {
-    setFormData({ ...formData, imageUrl });
-    setImagePreview(imageUrl);
-  };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
@@ -133,7 +126,6 @@ const FoodManagement: React.FC = () => {
       categoryId: '',
       imageUrl: '',
     });
-    setImagePreview('');
     setError('');
   };
 
@@ -313,11 +305,18 @@ const FoodManagement: React.FC = () => {
             required
           />
 
-          <ImageUpload
-            onImageUploaded={handleImageUploaded}
-            currentImageUrl={editingFood?.imageUrl}
-            disabled={addMutation.isPending || updateMutation.isPending}
-          />
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              تصویر غذا (URL)
+            </label>
+            <Input
+              type="url"
+              value={formData.imageUrl}
+              onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+              placeholder="آدرس تصویر را وارد کنید"
+              required
+            />
+          </div>
 
           {error && (
             <div className="text-red-600 text-sm">{error}</div>

@@ -9,8 +9,7 @@ import {
   where,
   orderBy 
 } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from './firebase';
+import { db } from './firebase';
 import { uploadImageToCloudinary, uploadImageToImgBB, convertToBase64 } from './cloudinary';
 import type { Category, Food } from '../types';
 
