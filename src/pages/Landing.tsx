@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getCategories, getFoods, getFoodsByCategory } from '../services/firestore';
+import { getCategories, getFoods } from '../services/firestore';
 import FoodCard from '../components/FoodCard';
 import CategoryFilter from '../components/CategoryFilter';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -18,14 +18,11 @@ const Landing: React.FC = () => {
     queryFn: getFoods,
   });
 
-  const { data: categoryFoods = [], isLoading: categoryFoodsLoading } = useQuery({
-    queryKey: ['foods', selectedCategory],
-    queryFn: () => selectedCategory ? getFoodsByCategory(selectedCategory) : Promise.resolve([]),
-    enabled: !!selectedCategory,
-  });
-
-  const foods = selectedCategory ? categoryFoods : allFoods;
-  const isLoading = selectedCategory ? categoryFoodsLoading : foodsLoading;
+  // Filter foods based on selected category
+  const foods = selectedCategory 
+    ? allFoods.filter(food => food.categoryId === selectedCategory)
+    : allFoods;
+  const isLoading = foodsLoading;
 
   if (categoriesLoading) {
     return (

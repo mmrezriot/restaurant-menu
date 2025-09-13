@@ -52,13 +52,19 @@ export const getFoods = async (): Promise<Food[]> => {
 };
 
 export const getFoodsByCategory = async (categoryId: string): Promise<Food[]> => {
-  const foodsRef = collection(db, 'foods');
-  const q = query(foodsRef, where('categoryId', '==', categoryId), orderBy('name'));
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  } as Food));
+  try {
+    const foodsRef = collection(db, 'foods');
+    const q = query(foodsRef, where('categoryId', '==', categoryId));
+    const querySnapshot = await getDocs(q);
+    const foods = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    } as Food));
+    return foods;
+  } catch (error) {
+    console.error('Error getting foods by category:', error);
+    return [];
+  }
 };
 
 export const addFood = async (food: Omit<Food, 'id'>): Promise<string> => {
