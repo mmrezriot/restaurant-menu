@@ -79,8 +79,21 @@ export const deleteFood = async (id: string): Promise<void> => {
 
 // Image upload
 export const uploadImage = async (file: File): Promise<string> => {
-  const storageRef = ref(storage, `food-images/${Date.now()}-${file.name}`);
-  const snapshot = await uploadBytes(storageRef, file);
-  const downloadURL = await getDownloadURL(snapshot.ref);
-  return downloadURL;
+  try {
+    // Create a unique filename
+    const timestamp = Date.now();
+    const fileName = `${timestamp}-${Math.random().toString(36).substring(2)}.${file.name.split('.').pop()}`;
+    const storageRef = ref(storage, `food-images/${fileName}`);
+    
+    // Upload the file
+    const snapshot = await uploadBytes(storageRef, file);
+    
+    // Get the download URL
+    const downloadURL = await getDownloadURL(snapshot.ref);
+    
+    return downloadURL;
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    throw new Error('خطا در آپلود تصویر. لطفاً دوباره تلاش کنید.');
+  }
 };
