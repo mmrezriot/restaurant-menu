@@ -1,6 +1,6 @@
 // Cloudinary configuration
 const CLOUDINARY_UPLOAD_PRESET = 'restaurant-menu'; // You'll need to create this in Cloudinary
-const CLOUDINARY_CLOUD_NAME = 'your-cloud-name'; // Replace with your actual cloud name
+const CLOUDINARY_CLOUD_NAME = 'dko1nxamy'; // Your actual cloud name
 
 export interface CloudinaryUploadResponse {
   public_id: string;
